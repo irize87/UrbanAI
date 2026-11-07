@@ -1,7 +1,7 @@
 # UrbanAI
 
 > Urban AI : 서초구 AI 도시 관리 시스템
-> 3D 모델링된 서초구의 도시 정보를 시각화하고 AI를 활용해 분석하여 정책에 반영합니다.
+> 서초구의 도시 정보를 3D 모델링으로 시각화하고 AI를 활용해 도시 정보를 분석하여 정책에 반영합니다.
 
 <p align="center">
   <img src="docs/seocho-city3d.png" alt="서초구 전역 3D 지도" width="720">
