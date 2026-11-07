@@ -2,6 +2,8 @@
 
 > 말로 읽고, 3D로 고쳐 보는 서초구 AI 도시 관리 시스템
 
+![3D 시각화](docs/seocho-city3d.png)
+
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
@@ -226,5 +228,8 @@ sitedia/
 
 ## 라이선스
 
-현재 저장소에는 별도 라이선스 파일이 없습니다. 사용·수정·배포 조건을 명확히 하려면
-공개 전에 프로젝트 정책에 맞는 `LICENSE` 파일을 추가하십시오.
+[MIT License](LICENSE)
+
+사용, 복제, 수정, 배포가 가능합니다. 수정하거나 배포하는 경우, 또는 이를 바탕으로
+추가 작업을 하는 경우 최초 제작자 **서초구청 홍성민 주무관 (irize@seocho.go.kr)** 을
+표기해야 합니다. 저작권 고지와 라이선스 문구도 함께 유지합니다.
