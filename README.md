@@ -2,7 +2,9 @@
 
 > 말로 읽고, 3D로 고쳐 보는 서초구 AI 도시 관리 시스템
 
-![3D 시각화](docs/seocho-city3d.png)
+<p align="center">
+  <img src="docs/seocho-city3d.png" alt="서초구 전역 3D 지도" width="720">
+</p>
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)
