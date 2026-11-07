@@ -1,0 +1,60 @@
+# hardcode
+
+- `SEOCHO_BBOX` / `SEOCHO_CENTER`: 서초구 분석(대지 지정) 범위
+- `CITY_CONTEXT_BUFFER_M`: 전역 3D에서 서초 경계 밖 2D를 깔 폭. 기본 600m
+- `DISTRICTS`: 수집 대상 구. 서초(primary) + 강남·동작·관악(adjacent)
+- `FLOOR_HEIGHT_M` = 3.25
+- `HIGH_COLOR` / `LOWRISE_COLOR`: 고층 `#4169E1`, 저층 `#4ECDC4` 다이어그램 강조색
+- `AGE_RAMP` / `HEIGHT_RAMP` / `ZONING_COLORS`: 원본 sitedia 다이어그램·3D 색 규칙
+- `UI_ACCENT` / `UI_BG`: 인터페이스 강조색 `#FF6B6B`, 배경 흰색
+- VWorld WFS/Search/WMTS URL
+- `CARTO_VOYAGER_TILE_URL`: 단순지도(Carto Voyager) 타일 템플릿. 키는 `.env`의 `CARTO_API_KEY`
+- `VWORLD_ADDRESS_URL`: 좌표→주소
+- `PNG_PX_*`: 다이어그램 PNG 내보내기 해상도 범위(1000–4000, 기본 2000)
+- `DIAGRAM_FRAME_STROKE`: 원·사각 테두리 0.5px (non-scaling-stroke). viewBox에 스트로크 여유
+- `ROAD_WIDTH_M` / `ROAD_SKIP`: 도로 패널 선 폭(m)과 생략할 OSM highway
+- `TERRAIN_STEP_M` / `TERRAIN_MAX_POINTS`: Copernicus DEM 격자 간격·점수 상한
+- `TERRAIN_HYPSO` / `TERRAIN_CONTOUR` / `TERRAIN_BUILDING`: 등고 패널 색
+- `SLOPE_SMOOTH_M` / `SLOPE_RAMP`: 경사도 50m 평활·5단 색
+- `PLOT_SIZE_JIMOK_SKIP` / `PLOT_SIZE_VOID` / `PLOT_SIZE_STROKE`: 필지 규모에서 제외할 지목·도로 회색·흰 구분선
+- `VWORLD_SATELLITE_LAYER` / `VWORLD_SATELLITE_EXT` / `TREE_*` / `SUN_HOURS_*`: 항공(jpeg)·수목·일조 패널
+- `TREE_CANOPY_DENSITY` 0.7 / `TREE_WINDOW_M` 12 / `TREE_EDGE_M` / `TREE_CANOPY_MIN_M2`: 수관 면 vs 개체
+- `TREE_RADIUS_MIN_M` 1.0 / `TREE_RADIUS_MAX_M` 4.2: 개체 사방 식생 길이
+- `TREE_STREET_R_M` 2.2 / `TREE_STREET_MAX` / `TREE_MERGE_SEP_M`: 가로수 원 반지름·상한, 위성 개체와 합칠 최소 간격
+- `SUN_HOURS_GRID_N` 384: 일조시간 격자 (표시 셀이 작아지도록)
+- `SEOUL_OPEN_API_BASE` / `SEOUL_STREET_TREE_*`: 서울 가로수 OpenAPI (키는 `.env`의 `SEOUL_OPEN_API_KEY`)
+- `TERRAIN_CONTOUR_M`: 등고선 간격 10m
+- `MASS_BASE_H_M`: 3D 바닥판 두께 180m (케이크 단면)
+- `MASS_FLOOR_COLOR` / `MASS_BG_COLOR` / `MASS_ROAD_COLOR` / `MASS_GREEN_COLOR` / `MASS_WATER_COLOR`: 3D 지면 `#E7E9EC`·흰 배경·연한 회색 도로·연한 초록 녹지·연한 파랑 하천 `#8ecae6`
+- `SUN_FLOOR_COLOR`: 일조 탭 바닥 흰색 `#ffffff` (그림자 대비. Lambert로 바닥을 바꾸지 않음)
+- `MASS_ZONE_GREEN_CATS` / `MASS_GREEN_ROAD_CLEAR_M`: 용도지역 녹지 합치기, 녹지에서 도로 통로를 열 여유(m)
+- `MASS_ROAD_LIFT_M` / `MASS_GREEN_LIFT_M` / `MASS_GREEN_DEPTH_M` / `MASS_WATER_LIFT_M`: 3D 도로·녹지·하천 띄움/두께. 하천은 녹지 위, 도로는 그 위
+- `MASS_DRAW_CONTOURS`: 3D 등고선 라인 표시. 기본 끔
+- `MASS_TERRAIN_N`: 3D 지형 메쉬 분할 수 72
+- `MASS_TERRAIN_EXAG`: 3D 지형 연직 과장 2.0
+- `MASS_EXPLODE_GAP_RATIO`: 분해 다이어그램 층 간격(반경 대비)
+- `MASS_LAYER_H_M` / `MASS_TERRAIN_LAYER_H_M`: 분해 상단 얇은 원판·지형 층 두께
+- `MASS_FOOTPRINT_OVERLAP`: 겹치는 건물 footprint를 하나로 줄일 때 최소 겹침 비율
+- `MASS_SPIN_PERIOD_S`: 3D 360° 등속도 회전 한 바퀴 주기(24초)
+- `MASS_ORTHO_WHEEL_ZOOM_SCALE` / `MASS_ORTHO_DEFAULT_ZOOM_NOTCHES`: 3D 직교 카메라 기본 줌. 휠 10노치 당긴 배율(`1/0.95^10`)
+- `MASS_ORTHO_SELECT_ZOOM_OUT_NOTCHES`: 선택 모드 직각 하늘 뷰 기본 줌. 회전 뷰 기본에서 휠 8노치 줌아웃(`0.95^8`)
+- `MASS_SELECT_POLY_CLOSE_PX`: 비정형 선택 시작점 닫기 반경(px)
+- `SIM_SETBACK_M` / `SIM_GAP_M` / `SIM_COVERAGE`: 3D 자연어 시뮬 이격·동간격·건폐
+- `SIM_SLAB_WIDTH_M` / `SIM_SLAB_LENGTH_M` / `SIM_TOWER_WIDTH_M` / `SIM_MIN_FOOTPRINT_M2`: 판상·타워 동 크기와 최소 면적
+- `SIM_IMAGE_MAX_EDGE_PX`: 시뮬 첨부 이미지 긴 변 상한(1200px)
+- `SIM_IMAGE_MASS_MAX` / `SIM_IMAGE_MASS_MAX_RING` / `SIM_IMAGE_MASS_SETBACK_M`: 도면 미리보기 동 수·꼭짓점·이격
+- `SIM_PIN_SITE_M`: 중심 핀만 있을 때 배치도를 올릴 기본 긴 변(m). 프롬프트에 가로·폭·너비가 있으면 그 값
+- `ANALYSIS_OLD_YEARS` / `ANALYSIS_LOW_FLOOR` / `ANALYSIS_HIGH_FLOOR`: 노후·저층·고층 기준
+- `ANALYSIS_SCHOOL_M` / `ANALYSIS_STATION_M`: 학교·역 기본 반경
+- `ANALYSIS_COLOR_HIGH` / `ANALYSIS_COLOR_MID`: 시나리오 후보 색
+- 건축물 용도: `USE_CODE_MAP` 건축법 별표1. 05·06·13 문화집회, 09–12 교육복지, 17–19·25 공업. 코드·시설명 없으면 미상
+- `PLANNED_LAYERS`: 도시계획시설. 151 계획도로, 152 주차·철도, 154 시장, 155 청사·문화. 153 공원·녹지는 녹지 패널
+- `PLANNED_SCHOOL_HINTS`: uq155 이름에 있으면 학교 (초교·고교·유치원)
+- `ZONING_ROAD_COLOR`: 용도지역 위 도로 오버레이 (`#ffffff`)
+- `TRANSIT_ROAD_COLOR`: 지하철·버스 아래 도로 (`#c4c4c4`)
+- `CONTEXT_BUILDING_COLOR`: 녹지·구역·도시계획시설 아래 건물 (`#ececec`)
+- `DISTRICT_STROKE_PX`: 구역·지구 구분선 두께 1.6px
+- `BLOCK_ROAD_COLOR`: 가구 피겨그라운드 도로 (`#ffffff`)
+- `OSM_GREEN_KIND`: OSM 태그 → 녹지 범주. `park` 지정 공원, `other` 숲·잔디·정원, `water` 하천
+- `DENSITY_KDE_M` / `DENSITY_GRID_N` / `DENSITY_RAMP`: 밀도 히트맵. 건축면적(연면적) 또는 동수 KDE, 연한 주황→자홍
+- `CDSE_TOKEN_URL` / `CDSE_PROCESS_URL`: Copernicus Data Space Sentinel Hub DEM

@@ -1,0 +1,35 @@
+# UrbanAI 전용. 호스트 80/443 과 기존 컨테이너 네트워크에는 붙지 않는다.
+name: urbanai
+
+services:
+  app:
+    build: .
+    image: urbanai:local
+    container_name: urbanai-app
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8090:8000"
+    volumes:
+      - ./data:/app/data
+    mem_limit: 6g
+    cpus: 2
+    restart: unless-stopped
+    user: "1000:1000"
+    networks:
+      - urbanai_net
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 25s
+
+networks:
+  urbanai_net:
+    name: urbanai_net
+    driver: bridge

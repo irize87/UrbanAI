@@ -1,0 +1,69 @@
+# 공개 저장소에는 소스, 테스트, 문서, .env.example 만 남긴다.
+# 키, 실데이터, 인증서, 개인 문서, 운영 서버 설정은 커밋하지 않는다.
+
+# 비밀·환경
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.crt
+Wildcard.seocho.go.kr/
+
+# 데이터 (실건물 SQLite, 캐시, 수신 파일)
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.gpkg
+*.db
+*.parquet
+*.h5
+*.pkl
+
+# 운영 서버 전용. 다른 서비스 경로와 인증서 위치가 들어 있다.
+deploy/
+
+# 내부 메모·참가 서류·참고 스크랩
+참고자료/
+\[목적].txt
+\[참가신청서]*.md
+
+# 작업 중 받은 이미지·대화 내보내기. 앱 자산은 frontend/ 안에 있다.
+*.jpg
+*.jpeg
+*.webp
+seocho_bg_removed.png
+/star-loader.tsx
+대지분석 다이어그램 자동 생성 — sitedia.html
+대지분석 다이어그램 자동 생성 — sitedia_files/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+htmlcov/
+.coverage
+
+# Node
+frontend/node_modules/
+frontend/dist/
+node_modules/
+
+# IDE / OS
+.idea/
+.vscode/
+.cursor/
+*.log
+.DS_Store
+Thumbs.db

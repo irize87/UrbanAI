@@ -1,0 +1,32 @@
+{
+  "data_sources": [
+    {
+      "item": "건물·높이·용도·준공일",
+      "source": "국토교통부 GIS건물통합정보 + 도로명주소 건물(VWorld) 보강"
+    },
+    {
+      "item": "용도지역·공원녹지·지적",
+      "source": "VWorld 도시자연공원구역 + OSM 공원·숲·잔디·정원·하천"
+    },
+    {
+      "item": "도로·가구·역·정류장",
+      "source": "OpenStreetMap 기여자"
+    },
+    {
+      "item": "지형·등고선·경사도",
+      "source": "Copernicus DEM (CDSE Sentinel Hub Process API, GLO-90 / 선택 GLO-30)"
+    },
+    {
+      "item": "항공사진·수목",
+      "source": "VWorld 항공영상 RGB jpeg HSV+ExG (수관·개체)"
+    },
+    {
+      "item": "가로수",
+      "source": "서울열린데이터광장 streetTreeInfo. 큰 도로 빈자리를 보강 (월 1회 로컬 SQLite)"
+    },
+    {
+      "item": "일조·그림자",
+      "source": "대지 위도·경도 NOAA 태양위치 + 높이 있는 건물 footprint. 법정 일조권 검토 아님"
+    }
+  ]
+}
