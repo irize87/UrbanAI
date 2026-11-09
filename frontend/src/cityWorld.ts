@@ -120,14 +120,10 @@ function makeContextFade(
   };
 }
 
-function paintContextFade(
-  geom: THREE.BufferGeometry,
-  fadeAt: (x: number, z: number) => number,
-): void {
+function paintUniformFade(geom: THREE.BufferGeometry, fade: number): void {
   const pos = geom.getAttribute("position");
   const colors = new Float32Array(pos.count * 4);
   for (let i = 0; i < pos.count; i++) {
-    const fade = fadeAt(pos.getX(i), pos.getZ(i));
     const offset = i * 4;
     colors[offset] = 1;
     colors[offset + 1] = 1;
@@ -135,6 +131,22 @@ function paintContextFade(
     colors[offset + 3] = fade;
   }
   geom.setAttribute("color", new THREE.BufferAttribute(colors, 4));
+}
+
+function ringFade(
+  ring: CityRing,
+  origin: [number, number],
+  fadeAt: (x: number, z: number) => number,
+): number {
+  let x = 0;
+  let z = 0;
+  for (const coord of ring) {
+    const point = lonLatToXZ(coord[0], coord[1], origin);
+    x += point.x;
+    z += point.z;
+  }
+  const count = Math.max(1, ring.length);
+  return fadeAt(x / count, z / count);
 }
 
 function makeContextMaterial(color: string, offset: number): THREE.MeshBasicMaterial {
@@ -489,7 +501,22 @@ function addRoads(
       const ribbon = buildRoadRibbon(pts, half, color, material);
       const mesh = ribbon as THREE.Mesh | null;
       if (!mesh?.geometry) continue;
-      if (fadeAt) paintContextFade(mesh.geometry, fadeAt);
+      if (fadeAt) {
+        let x = 0;
+        let z = 0;
+        for (const coord of line) {
+          const point = lonLatToXZ(coord[0], coord[1], origin);
+          x += point.x;
+          z += point.z;
+        }
+        const count = Math.max(1, line.length);
+        const fade = fadeAt(x / count, z / count);
+        if (fade < 0.04) {
+          mesh.geometry.dispose();
+          continue;
+        }
+        paintUniformFade(mesh.geometry, fade);
+      }
       geoms.push(mesh.geometry);
     }
   }
@@ -593,9 +620,11 @@ async function addFootprints(
   let stamp = performance.now();
   for (let index = 0; index < rings.length; index++) {
     if (signal.aborted) return;
+    const fade = ringFade(rings[index], origin, fadeAt);
+    if (fade < 0.04) continue;
     const geom = flatRing(rings[index], origin, 0.35);
     if (geom) {
-      paintContextFade(geom, fadeAt);
+      paintUniformFade(geom, fade);
       geoms.push(geom);
     }
     if (geoms.length >= 500 || performance.now() - stamp > 48) {
@@ -684,22 +713,58 @@ export async function buildCityScene(
   );
   if (signal.aborted) throw new DOMException("aborted", "AbortError");
 
-  onProgress("경계 밖 바닥을 만드는 중…", 0.9);
+  if (hasContext(bundle)) {
+    onProgress("경계 밖 바닥을 만드는 중…", 0.9);
+    await addContextLayers(scene, bundle, signal);
+  }
+  return scene;
+}
+
+function hasContext(bundle: Pick<CityBundle, "context">): boolean {
+  return (
+    bundle.context.plate.length > 0 ||
+    bundle.context.buildings.length > 0 ||
+    bundle.context.roads.length > 0
+  );
+}
+
+async function addContextLayers(
+  scene: CityScene,
+  bundle: Pick<CityBundle, "meta" | "ground" | "context">,
+  signal: AbortSignal,
+): Promise<void> {
+  const style = mergeStyle(bundle.meta.style);
   const fadeAt = makeContextFade(
-    toXzPolys(bundle.ground.boundary, origin),
+    toXzPolys(bundle.ground.boundary, scene.origin),
     Number(bundle.meta.context_buffer_m) || 600,
   );
-  addPlate(layers.plate, bundle.context.plate, origin);
-  await addFootprints(layers.contextBuildings, bundle.context.buildings, origin, signal, fadeAt);
+  addPlate(scene.layers.plate, bundle.context.plate, scene.origin);
+  await addFootprints(
+    scene.layers.contextBuildings,
+    bundle.context.buildings,
+    scene.origin,
+    signal,
+    fadeAt,
+  );
+  if (signal.aborted) return;
   addRoads(
-    layers.contextRoads,
+    scene.layers.contextRoads,
     bundle.context.roads,
-    origin,
+    scene.origin,
     () => 0,
     0.55,
     "#b4b4b4",
     style,
     fadeAt,
   );
-  return scene;
+}
+
+/** 서초 화면이 열린 뒤 경계 밖 바닥을 붙인다. */
+export async function appendCityContext(
+  scene: CityScene,
+  bundle: Pick<CityBundle, "meta" | "ground" | "context">,
+  signal: AbortSignal,
+): Promise<void> {
+  if (!hasContext(bundle) || signal.aborted) return;
+  await addContextLayers(scene, bundle, signal);
 }

@@ -105,30 +105,56 @@ async function loadLayer<T extends { rev: string }>(
     onStatus(`저장된 ${label}을 읽는 중…`);
     return { data: cached, fromCache: true };
   }
-  onStatus(`서버에서 ${label}을 받는 중…`);
+  onStatus(`서버에서 ${label}을 준비하는 중…`);
   const fresh = await fetcher();
   if (fresh.rev === rev) await idbPut(key, fresh);
   return { data: fresh, fromCache: false };
+}
+
+const emptyContext = (rev: string): CityContext => ({
+  rev,
+  plate: [],
+  buildings: [],
+  roads: [],
+});
+
+/** 서초 건물과 바닥만 먼저 모은다. 경계 밖은 화면을 연 뒤에 붙인다. */
+export async function loadCityCore(
+  onStatus: (message: string) => void,
+): Promise<CityBundle> {
+  onStatus("데이터 버전을 확인하는 중…");
+  const meta = await fetchCityMeta();
+  const [buildings, ground] = await Promise.all([
+    loadLayer(meta.rev, "buildings", "서초 건물", fetchCityBuildings, onStatus),
+    loadLayer(meta.rev, "ground", "서초 바닥", fetchCityGround, onStatus),
+  ]);
+  void dropOtherRevisions(meta.rev);
+  return {
+    meta,
+    buildings: buildings.data,
+    ground: ground.data,
+    context: emptyContext(meta.rev),
+    fromCache: buildings.fromCache && ground.fromCache,
+  };
+}
+
+/** 경계 밖 바닥. 서초 화면과 겹쳐서 받을 수 있다. */
+export async function loadCityContext(
+  rev: string,
+  onStatus: (message: string) => void,
+): Promise<{ data: CityContext; fromCache: boolean }> {
+  return loadLayer(rev, "context", "경계 밖 바닥", fetchCityContext, onStatus);
 }
 
 /** 버전을 확인한 뒤 건물·바닥·주변 레이어를 캐시 또는 서버에서 모은다. */
 export async function loadCityBundle(
   onStatus: (message: string) => void,
 ): Promise<CityBundle> {
-  onStatus("데이터 버전을 확인하는 중…");
-  const meta = await fetchCityMeta();
-  const [buildings, ground, context] = await Promise.all([
-    loadLayer(meta.rev, "buildings", "서초 건물", fetchCityBuildings, onStatus),
-    loadLayer(meta.rev, "ground", "서초 바닥", fetchCityGround, onStatus),
-    loadLayer(meta.rev, "context", "경계 밖 바닥", fetchCityContext, onStatus),
-  ]);
-  const fromCache = buildings.fromCache && ground.fromCache && context.fromCache;
-  void dropOtherRevisions(meta.rev);
+  const core = await loadCityCore(onStatus);
+  const context = await loadCityContext(core.meta.rev, onStatus);
   return {
-    meta,
-    buildings: buildings.data,
-    ground: ground.data,
+    ...core,
     context: context.data,
-    fromCache,
+    fromCache: core.fromCache && context.fromCache,
   };
 }

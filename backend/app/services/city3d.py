@@ -8,7 +8,7 @@ from __future__ import annotations
 import threading
 from typing import Any
 
-from shapely.geometry import box, shape
+from shapely.geometry import box
 from shapely.geometry.base import BaseGeometry
 
 from app.core.config import load_hardcode
@@ -17,14 +17,8 @@ from app.db.schema import connect
 from app.db.sgg import load_sgg_region
 from app.render.svg_engine import to_lonlat, to_metric
 from app.services.footprint import building_height_m
-from app.services.layer_cache import clipped_buildings, iter_clipped
-from app.services.mass3d import (
-    _green_features,
-    _merged_water_geom,
-    _water_features,
-    mass_style,
-    terrain_payload,
-)
+from app.services.layer_cache import iter_clipped
+from app.services.mass3d import mass_style, terrain_payload
 
 _CACHE: dict[str, dict[str, Any]] = {}
 _CACHE_LOCK = threading.Lock()
@@ -58,7 +52,7 @@ def city_revision() -> str:
         ).fetchone()
         mode = conn.execute("SELECT value FROM meta WHERE key='data_mode'").fetchone()
     mode_v = mode["value"] if mode else ""
-    return f"{mode_v}|b{buildings}|r{roads}|g{green}|s{sync['i']}|{sync['t']}|dedupe-year"
+    return f"{mode_v}|b{buildings}|r{roads}|g{green}|s{sync['i']}|{sync['t']}|city-lod2"
 
 
 def seocho_region() -> BaseGeometry:
@@ -117,8 +111,8 @@ def _simplify(geom: BaseGeometry, meters: float) -> BaseGeometry:
 def _coords(seq: Any, min_len: int) -> list[list[float]]:
     out: list[list[float]] = []
     for coord in seq:
-        lng = round(float(coord[0]), 6)
-        lat = round(float(coord[1]), 6)
+        lng = round(float(coord[0]), 5)
+        lat = round(float(coord[1]), 5)
         if out and out[-1][0] == lng and out[-1][1] == lat:
             continue
         out.append([lng, lat])
@@ -196,17 +190,25 @@ def _polys(geom: BaseGeometry) -> list[list[list[list[float]]]]:
     return out
 
 
-def _feature_polys(features: list[dict[str, Any]]) -> list[list[list[list[float]]]]:
+def _city_surface_polys(
+    table: str,
+    clip: BaseGeometry,
+    *,
+    accept,
+    min_area: float,
+    simplify_m: float,
+) -> list[list[list[list[float]]]]:
+    """구 전체를 한 면으로 합치지 않고, 면마다 단순화해서 보낸다.
+
+    전역 녹지·하천을 unary_union·도로 버퍼로 깎으면 요청이 수십 분 멈추는 경우가 있다.
+    """
     polys: list[list[list[list[float]]]] = []
-    for feature in features:
-        geometry = feature.get("geometry")
-        if not geometry:
+    for row, geom in iter_clipped(table, clip):
+        if not accept(row):
             continue
-        try:
-            geom = shape(geometry)
-        except Exception:
+        if _area_m2(geom) < min_area:
             continue
-        polys.extend(_polys(_simplify(geom, 3.0)))
+        polys.extend(_polys(_simplify(geom, simplify_m)))
     return polys
 
 
@@ -294,11 +296,11 @@ def build_city_buildings() -> dict[str, Any]:
     def _build(rev: str) -> dict[str, Any]:
         seocho = seocho_region()
         items: list[dict[str, Any]] = []
-        for row, geom in clipped_buildings(seocho, require_height=True):
+        for row, geom in iter_clipped("buildings", seocho):
             height = building_height_m(row)
             if height is None or height <= 0:
                 continue
-            rings = _building_rings(_simplify(geom, 1.2), 8.0)
+            rings = _building_rings(_simplify(geom, 2.5), 12.0)
             if not rings:
                 continue
             items.append(
@@ -318,13 +320,33 @@ def build_city_ground() -> dict[str, Any]:
 
     def _build(rev: str) -> dict[str, Any]:
         seocho = seocho_region()
-        water_geom = _merged_water_geom(seocho)
+        hc = load_hardcode()
+        zone_cats = {str(item) for item in (hc.get("MASS_ZONE_GREEN_CATS") or [])}
         return {
             "rev": rev,
             "boundary": _polys(_simplify(seocho, 4.0)),
-            "roads": _road_items(seocho, 2.0),
-            "green": _feature_polys(_green_features(seocho, water=water_geom)),
-            "water": _feature_polys(_water_features(seocho, merged=water_geom)),
+            "roads": _road_items(seocho, 3.5),
+            "green": _city_surface_polys(
+                "green",
+                seocho,
+                accept=lambda row: str(row.get("kind") or "park") in {"park", "other"},
+                min_area=40.0,
+                simplify_m=8.0,
+            )
+            + _city_surface_polys(
+                "zoning",
+                seocho,
+                accept=lambda row: str(row.get("zone_cat") or "") in zone_cats,
+                min_area=80.0,
+                simplify_m=12.0,
+            ),
+            "water": _city_surface_polys(
+                "green",
+                seocho,
+                accept=lambda row: str(row.get("kind") or "") in {"water", "sea"},
+                min_area=40.0,
+                simplify_m=8.0,
+            ),
             "terrain": terrain_payload(),
         }
 
@@ -340,13 +362,13 @@ def build_city_context() -> dict[str, Any]:
         if ring is None:
             return {"rev": rev, "plate": [], "buildings": [], "roads": []}
         footprints: list[list[list[float]]] = []
-        for _row, geom in clipped_buildings(ring, require_height=False):
-            footprints.extend(_building_rings(_simplify(geom, 2.5), 12.0))
+        for _row, geom in iter_clipped("buildings", ring):
+            footprints.extend(_building_rings(_simplify(geom, 5.0), 40.0))
         return {
             "rev": rev,
             "plate": _polys(_simplify(ring, 6.0)),
             "buildings": footprints,
-            "roads": _road_items(ring, 3.0),
+            "roads": _road_items(ring, 6.0),
         }
 
     return _cached("context", _build)

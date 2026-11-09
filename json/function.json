@@ -87,7 +87,7 @@
   "normalize_heat_metric": "밀도 지표 area|count. gfa는 area로 봄",
   "download_cdse_dem": "CDSE Sentinel Hub Process API로 Copernicus DEM 격자를 받아 저장",
   "fetch_cdse_token": "OAuth2 client_credentials 로 CDSE access token 발급",
-  "city_revision": "전역 3D 캐시 키. 건물·도로·녹지 수와 마지막 동기화",
+  "city_revision": "전역 3D 캐시 키. 건물·도로·녹지 수, 마지막 동기화, 도형 단순화 단계",
   "seocho_region": "서초 구 경계. 없으면 SEOCHO_BBOX 사각형",
   "context_ring": "서초 경계 밖 CITY_CONTEXT_BUFFER_M 띠. 구 안은 제외",
   "build_city_meta": "GET /api/city3d/meta. 버전·범위·3D 스타일",

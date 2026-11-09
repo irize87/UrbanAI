@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { MapControls } from "three/examples/jsm/controls/MapControls.js";
-import { loadCityBundle } from "../cityCache";
-import { buildCityScene, disposeCity, type CityLayers } from "../cityWorld";
+import { loadCityContext, loadCityCore } from "../cityCache";
+import { appendCityContext, buildCityScene, disposeCity, type CityLayers } from "../cityWorld";
 import { StarLoader } from "./StarLoader";
 
 type Props = {
@@ -118,15 +118,15 @@ export function CityViewer({ active }: Props) {
         setProgress(Math.max(0, Math.min(1, ratio)));
       };
       try {
-        const bundle = await loadCityBundle((message) => {
+        const bundle = await loadCityCore((message) => {
           let ratio = 0.08;
           if (message.includes("버전")) ratio = 0.04;
-          else if (message.includes("건물")) ratio = 0.14;
-          else if (message.includes("경계")) ratio = 0.24;
-          else if (message.includes("바닥")) ratio = 0.2;
+          else if (message.includes("건물")) ratio = 0.16;
+          else if (message.includes("바닥")) ratio = 0.28;
           report(message, ratio);
         });
         if (stopped) return;
+        const contextTask = loadCityContext(bundle.meta.rev, () => undefined);
         const fit = (built: Awaited<ReturnType<typeof buildCityScene>>) => {
           built.root.updateMatrixWorld(true);
           const box = new THREE.Box3().setFromObject(built.root);
@@ -166,13 +166,19 @@ export function CityViewer({ active }: Props) {
           fit(built);
         }
         applyFlags(built.layers, flagsRef.current);
-        const outside = bundle.context.buildings.length;
         const source = bundle.fromCache ? "저장된 데이터" : "서버에서 받은 데이터";
-        setProgress(1);
+        const seochoCount = bundle.buildings.items.length.toLocaleString("ko-KR");
+        setProgress(0.92);
         setLoading(false);
-        setStatus(
-          `서초 ${bundle.buildings.items.length.toLocaleString("ko-KR")}동 · 경계 밖 ${outside.toLocaleString("ko-KR")}동 · ${source}`,
-        );
+        setStatus(`서초 ${seochoCount}동 · 경계 밖을 붙이는 중… · ${source}`);
+        const context = await contextTask;
+        if (stopped) return;
+        bundle.context = context.data;
+        await appendCityContext(built, bundle, abort.signal);
+        if (stopped) return;
+        const outside = context.data.buildings.length.toLocaleString("ko-KR");
+        setProgress(1);
+        setStatus(`서초 ${seochoCount}동 · 경계 밖 ${outside}동 · ${source}`);
       } catch (error) {
         if (stopped || (error instanceof DOMException && error.name === "AbortError")) return;
         setLoading(false);
