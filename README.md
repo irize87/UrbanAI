@@ -5,6 +5,8 @@
 
 <p align="center">
   <img src="docs/seocho-city3d.png" alt="서초구 전역 3D 지도" width="720">
+  <br>
+  <a href="https://urbanai.seocho.go.kr">https://urbanai.seocho.go.kr</a>
 </p>
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
